@@ -1246,4 +1246,117 @@ describe "Schema definition" do
 
   end
 
+  describe "XML Embedding" do
+    before(:each) do
+      @schema = Mondrian::OLAP::Schema.new
+    end
+
+    it "should render XML table fragment" do
+      @schema.define do
+        cube 'Sales' do
+          xml <<-XML
+            <Table alias="sales" name="sales_fact"/>
+          XML
+        end
+      end
+      @schema.to_xml.should be_like <<-XML
+      <?xml version="1.0"?>
+      <Schema name="default">
+        <Cube name="Sales">
+          <Table alias="sales" name="sales_fact"/>
+        </Cube>
+      </Schema>
+      XML
+    end
+    it "should render XML fragment" do
+      @schema.define do
+        cube 'Sales' do
+          xml <<-XML
+            <Table name="sales_fact_1997"/>
+            <Dimension foreignKey="customer_id" name="Customers">
+              <Hierarchy allMemberName="All Customers" hasAll="true" primaryKey="customer_id">
+                <Table name="customer"/>
+                <Level column="country" name="Country" uniqueMembers="true"/>
+                <Level column="state_province" name="State Province" uniqueMembers="true"/>
+                <Level column="city" name="City" uniqueMembers="false"/>
+                <Level column="fullname" name="Name" uniqueMembers="true"/>
+              </Hierarchy>
+            </Dimension>
+            <Dimension foreignKey="product_id" name="Products">
+              <Hierarchy allMemberName="All Products" hasAll="true" primaryKey="product_id" primaryKeyTable="product">
+                <Join leftKey="product_class_id" rightKey="product_class_id">
+                  <Table name="product"/>
+                  <Table name="product_class"/>
+                </Join>
+                <Level column="product_family" name="Product Family" table="product_class" uniqueMembers="true"/>
+                <Level column="brand_name" name="Brand Name" table="product" uniqueMembers="false"/>
+                <Level column="product_name" name="Product Name" table="product" uniqueMembers="true"/>
+              </Hierarchy>
+            </Dimension>
+            <Dimension foreignKey="time_id" name="Time" type="TimeDimension">
+              <Hierarchy hasAll="false" primaryKey="time_id">
+                <Table name="time_by_day"/>
+                <Level column="the_year" levelType="TimeYears" name="Year" type="Numeric" uniqueMembers="true"/>
+                <Level column="quarter" levelType="TimeQuarters" name="Quarter" uniqueMembers="false"/>
+                <Level column="month_of_year" levelType="TimeMonths" name="Month" type="Numeric" uniqueMembers="false"/>
+              </Hierarchy>
+              <Hierarchy hasAll="false" name="Weekly" primaryKey="time_id">
+                <Table name="time_by_day"/>
+                <Level column="the_year" levelType="TimeYears" name="Year" type="Numeric" uniqueMembers="true"/>
+                <Level column="week_of_year" levelType="TimeWeeks" name="Week" type="Numeric" uniqueMembers="false"/>
+              </Hierarchy>
+            </Dimension>
+            <Measure aggregator="sum" column="unit_sales" name="Unit Sales"/>
+            <Measure aggregator="sum" column="store_sales" name="Store Sales"/>
+            <Measure aggregator="sum" column="store_cost" name="Store Cost"/>
+          XML
+        end
+      end
+      @schema.to_xml.should be_like <<-XML
+      <?xml version="1.0"?>
+      <Schema name="default">
+        <Cube name="Sales">
+          <Table name="sales_fact_1997"/>
+          <Dimension foreignKey="customer_id" name="Customers">
+            <Hierarchy allMemberName="All Customers" hasAll="true" primaryKey="customer_id">
+              <Table name="customer"/>
+              <Level column="country" name="Country" uniqueMembers="true"/>
+              <Level column="state_province" name="State Province" uniqueMembers="true"/>
+              <Level column="city" name="City" uniqueMembers="false"/>
+              <Level column="fullname" name="Name" uniqueMembers="true"/>
+            </Hierarchy>
+          </Dimension>
+          <Dimension foreignKey="product_id" name="Products">
+            <Hierarchy allMemberName="All Products" hasAll="true" primaryKey="product_id" primaryKeyTable="product">
+              <Join leftKey="product_class_id" rightKey="product_class_id">
+                <Table name="product"/>
+                <Table name="product_class"/>
+              </Join>
+              <Level column="product_family" name="Product Family" table="product_class" uniqueMembers="true"/>
+              <Level column="brand_name" name="Brand Name" table="product" uniqueMembers="false"/>
+              <Level column="product_name" name="Product Name" table="product" uniqueMembers="true"/>
+            </Hierarchy>
+          </Dimension>
+          <Dimension foreignKey="time_id" name="Time" type="TimeDimension">
+            <Hierarchy hasAll="false" primaryKey="time_id">
+              <Table name="time_by_day"/>
+              <Level column="the_year" levelType="TimeYears" name="Year" type="Numeric" uniqueMembers="true"/>
+              <Level column="quarter" levelType="TimeQuarters" name="Quarter" uniqueMembers="false"/>
+              <Level column="month_of_year" levelType="TimeMonths" name="Month" type="Numeric" uniqueMembers="false"/>
+            </Hierarchy>
+            <Hierarchy hasAll="false" name="Weekly" primaryKey="time_id">
+              <Table name="time_by_day"/>
+              <Level column="the_year" levelType="TimeYears" name="Year" type="Numeric" uniqueMembers="true"/>
+              <Level column="week_of_year" levelType="TimeWeeks" name="Week" type="Numeric" uniqueMembers="false"/>
+            </Hierarchy>
+          </Dimension>
+          <Measure aggregator="sum" column="unit_sales" name="Unit Sales"/>
+          <Measure aggregator="sum" column="store_sales" name="Store Sales"/>
+          <Measure aggregator="sum" column="store_cost" name="Store Cost"/>
+        </Cube>
+      </Schema>
+      XML
+    end
+  end
+
 end
